@@ -1,21 +1,26 @@
 import { Button, Image } from 'antd';
-import { useState, useEffect } from 'react';
-import jwtDecode, { JwtPayload } from 'jwt-decode';
+
 import { ID_SIGNINDIV } from './Constants'
 
-const Login = () => {
+import { AuthContext } from './Contexts';
+import { useEffect, useContext } from 'react';
 
-    interface UserProfile {
-        name: string
-        email: string
-        imageUrl: string
-    };
-    
-    interface GoogleJWTPayload extends JwtPayload {
-        name: string
-        email: string
-        picture: string
-    };
+import jwtDecode, { JwtPayload } from 'jwt-decode';
+
+
+export interface UserProfile {
+    name: string
+    email: string
+    imageUrl: string
+};
+
+interface GoogleJWTPayload extends JwtPayload {
+    name: string
+    email: string
+    picture: string
+};
+
+const Login = () => {
     
     const googleButtonConfiguration: google.accounts.id.GsiButtonConfiguration = {
         type: 'standard',
@@ -23,26 +28,11 @@ const Login = () => {
         size: "large"
     };
 
-    const [profile, setProfile] = useState<UserProfile>();
+    const {profile, setProfile} = useContext(AuthContext);
 
-    let didInit = false;
-
-    const init = () => {
-        google.accounts.id.initialize({
-            client_id: import.meta.env.VITE_GOOGLE_OAUTH_CLIENT_ID as string,
-            callback: onSuccess
-        });
-        google.accounts.id.renderButton(
-            document.getElementById(ID_SIGNINDIV) as HTMLElement,
-            googleButtonConfiguration
-        );
-        google.accounts.id.prompt();
-        didInit = true;
-    }
 
     const onSuccess = (res: google.accounts.id.CredentialResponse) => {
         console.log("Response", res);
-        console.log("EncodedJWT ID token", res.credential);
         let decoded = jwtDecode<GoogleJWTPayload>(res.credential as string);
         console.log("DecodedJWT ID token:", decoded);
         setProfile({
@@ -50,12 +40,28 @@ const Login = () => {
             email: decoded.email,
             imageUrl: decoded.picture
         } as UserProfile);
-        (document.getElementById(ID_SIGNINDIV) as HTMLElement).hidden = true;
     }
     
     const logOut = () => {
         setProfile(undefined);
-        (document.getElementById(ID_SIGNINDIV) as HTMLElement).hidden = false;
+    }
+    
+    let didInit = false;
+    
+    const init = () => {
+        google.accounts.id.initialize({
+            client_id: import.meta.env.VITE_GOOGLE_OAUTH_CLIENT_ID as string,
+            callback: onSuccess
+        });
+        didInit = true;
+    }
+
+    const renderAndPrompt = () => {
+        google.accounts.id.renderButton(
+            document.getElementById(ID_SIGNINDIV) as HTMLElement,
+            googleButtonConfiguration
+        );
+        google.accounts.id.prompt();
     }
 
     useEffect(() => {
@@ -65,8 +71,12 @@ const Login = () => {
             detect any problems with your code and
             warn you about them (which can be quite useful).
          */
-        if(!didInit) init();
+        if(!didInit) init(); //renderAndPrompt();
     }, [])
+
+    useEffect(() => {
+        if(!profile) renderAndPrompt();
+    }, [profile])
 
     return(
         <div className='login'>
@@ -81,9 +91,9 @@ const Login = () => {
             ) : (
                 <div>
                     <h1>Bienvenido, inicie sesion con Google</h1>
+                    <div id={ID_SIGNINDIV}></div>
                 </div>
             )}
-            <div id={ID_SIGNINDIV}></div>
         </div>
     )
 }

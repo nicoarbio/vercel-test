@@ -1,8 +1,11 @@
-import { DatePicker } from 'antd'
-import React from 'react'
+import React, { useState } from 'react'
 import ReactDOM from 'react-dom/client'
-import Login from './Login'
+
 import './style.css'
+
+import Login, { UserProfile } from './Login'
+
+import { AuthContext } from './Contexts'
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
@@ -10,9 +13,12 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   </React.StrictMode>
 )
 
-
 function App() {
+  const [profile, setProfile] = useState<UserProfile>();
+
   return (
-    <Login />
+    <AuthContext.Provider value={{profile, setProfile}}>
+      <Login />
+    </AuthContext.Provider>
   )
 }
