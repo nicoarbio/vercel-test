@@ -22,14 +22,14 @@ interface GoogleJWTPayload extends JwtPayload {
 
 const Login = () => {
     
+    const { profile, setProfile } = useContext(AuthContext);
+    //const [profile, setProfile] = useState<UserProfile>();
+
     const googleButtonConfiguration: google.accounts.id.GsiButtonConfiguration = {
         type: 'standard',
         theme: "outline",
         size: "large"
     };
-
-    const {profile, setProfile} = useContext(AuthContext);
-
 
     const onSuccess = (res: google.accounts.id.CredentialResponse) => {
         console.log("Response", res);
@@ -44,10 +44,11 @@ const Login = () => {
     
     const logOut = () => {
         setProfile(undefined);
-    }
-    
+        console.log("Logging out........")
+        localStorage.clear();
+    }    
+
     let didInit = false;
-    
     const init = () => {
         google.accounts.id.initialize({
             client_id: import.meta.env.VITE_GOOGLE_OAUTH_CLIENT_ID as string,
@@ -72,11 +73,36 @@ const Login = () => {
             warn you about them (which can be quite useful).
          */
         if(!didInit) init(); //renderAndPrompt();
+
+        let loggedInUser = localStorage.getItem("user");
+        console.log(loggedInUser);
+        if(loggedInUser == "undefined") loggedInUser = null;
+        if (loggedInUser) {
+            const foundUser = JSON.parse(loggedInUser);
+            setProfile(foundUser);
+        }
+
     }, [])
 
     useEffect(() => {
-        if(!profile) renderAndPrompt();
+        if(!profile) {
+            renderAndPrompt()
+        } else {
+            console.log(profile);
+            console.log(JSON.stringify(profile));
+            localStorage.setItem("user", JSON.stringify(profile));
+        };
     }, [profile])
+
+    const mockAction = () => {
+        console.log("MockAction in", profile, JSON.stringify(profile));
+    }
+
+    // Will run on every render
+    /* useEffect(() => {
+        
+    }) */
+
 
     return(
         <div className='login'>
@@ -87,6 +113,9 @@ const Login = () => {
                     <p>Nombre: {profile.name}</p>
                     <p>Email: {profile.email}</p>
                     <Button onClick={logOut}>Cerrar Sesión</Button>
+
+                    <Button onClick={mockAction}>Mock action</Button>
+
                 </div>
             ) : (
                 <div>

@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
 import ReactDOM from 'react-dom/client'
 
-import './style.css'
+import './style/style.css'
 
-import Login, { UserProfile } from './Login'
+import Login, { UserProfile } from './components/Login'
 
-import { AuthContext } from './Contexts'
+import { AuthContext } from './components/Contexts'
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
